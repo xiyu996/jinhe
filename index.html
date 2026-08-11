@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>活动安排 · 锦和出行</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #F5F3EF;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+            padding: 20px 16px 40px;
+            color: #1A1B23;
+        }
+        .container { max-width: 1000px; margin: 0 auto; overflow: hidden; }
+
+        .back-bar {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 18px; flex-wrap: wrap;
+        }
+        .back-bar a {
+            color: #6B6C78; text-decoration: none; font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 4px;
+            background: #fff; padding: 6px 14px 6px 10px; border-radius: 30px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.04); border: 1px solid #E6E1D9; transition: 0.2s;
+        }
+        .back-bar a:hover { background: #EFEAE3; }
+        .back-bar h2 { font-size: 20px; font-weight: 700; letter-spacing: .3px; }
+
+        .tab-nav {
+            display: flex; gap: 4px; background: #fff; border-radius: 16px; padding: 5px;
+            box-shadow: 0 2px 10px rgba(26,27,35,.05); border: 1px solid #E6E1D9; margin-bottom: 16px;
+        }
+        .tab-btn {
+            flex: 1; padding: 10px 20px; border: none; background: transparent;
+            font-size: 14px; font-weight: 600; color: #6B6C78; cursor: pointer;
+            border-radius: 12px; transition: 0.2s; white-space: nowrap; font-family: inherit;
+        }
+        .tab-btn:hover { background: #F5F1EB; color: #3A3B45; }
+        .tab-btn.active { background: #1A1B23; color: #fff; }
+        .tab-icon { margin-right: 4px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .btn {
+            background: #FAF8F5; border: 1px solid #E6E1D9; border-radius: 30px;
+            padding: 6px 16px; font-size: 13px; font-weight: 500; color: #1A1B23;
+            cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center;
+            gap: 4px; font-family: inherit;
+        }
+        .btn-primary { background: #1A1B23; color: #fff; border-color: #1A1B23; }
+        .btn-primary:hover { background: #3A3B45; }
+        .btn-gold { background: #B8924A; color: #fff; border-color: #B8924A; }
+        .btn-gold:hover { background: #9A7838; }
+        .btn-outline { background: transparent; }
+        .btn-outline:hover { background: #EFEAE3; }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #1A1B23; color: #fff; padding: 10px 24px; border-radius: 40px;
+            font-size: 14px; font-weight: 500; box-shadow: 0 8px 30px rgba(0,0,0,.2);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+        }
+        .toast.show { opacity: 1; }
+
+        .toolbar {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+            background: #fff; border-radius: 16px; padding: 12px 18px;
+            box-shadow: 0 2px 10px rgba(26,27,35,.05); border: 1px solid #E6E1D9; margin-bottom: 16px;
+        }
+        .toolbar .group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .toolbar label { font-size: 13px; font-weight: 500; color: #3A3B45; margin-right: 4px; }
+        .toolbar input[type="text"] {
+            border: 1px solid #E6E1D9; border-radius: 10px; padding: 6px 12px;
+            font-size: 13px; background: #FAF8F5; width: 130px; transition: 0.2s;
+        }
+        .toolbar input[type="text"]:focus { border-color: #B8924A; outline: none; background: #fff; }
+        .toolbar select {
+            border: 1px solid #E6E1D9; border-radius: 10px; padding: 6px 12px;
+            font-size: 13px; background: #FAF8F5; color: #1A1B23; cursor: pointer; font-family: inherit;
+        }
+
+        /* ----- 共用卡片 ----- */
+        .table-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+        /* 烧烤桌纵向单列排列，与工具栏同宽 */
+        .bbq-card-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .table-card {
+            background: #fff; border-radius: 18px;
+            box-shadow: 0 4px 14px rgba(26,27,35,.06); border: 1px solid #E6E1D9;
+            overflow: hidden; transition: 0.2s;
+        }
+        .table-card:hover { box-shadow: 0 8px 24px rgba(26,27,35,.08); }
+        .table-card-header {
+            padding: 5px 12px; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+            background: #FAF8F5; border-bottom: 2px solid #B8924A;
+        }
+        .table-card-header .num-badge {
+            width: 24px; height: 24px; border-radius: 8px; background: #B8924A;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .table-card-header .count { margin-left: auto; font-size: 11px; font-weight: 500; color: #6B6C78; margin-right: 4px; }
+        .table-card-header .del-btn {
+            background: none; border: none; color: #8B2635; font-size: 14px;
+            cursor: pointer; opacity: 0.5; transition: 0.15s; padding: 0 4px;
+        }
+        .table-card-header .del-btn:hover { opacity: 1; }
+        .table-card-body {
+            padding: 10px 16px 6px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* ----- SVG 座位通用 ----- */
+        .table-visual { position: relative; width: 100%; }
+        .table-visual svg { display: block; width: 100%; height: auto; }
+        .table-visual .seat {
+            fill: #fff; stroke: #B8924A; stroke-width: 1.5;
+            cursor: pointer; transition: 0.15s;
+        }
+        .table-visual .seat:hover { fill: #FDF9F2; stroke: #9A7838; stroke-width: 2.2; }
+        .table-visual .seat.occupied { fill: #B8924A; stroke: #9A7838; stroke-width: 1.5; }
+        .table-visual .seat.occupied:hover { fill: #C49A5A; }
+        .table-visual .seat-label {
+            font-size: 10px; font-weight: 600; text-anchor: middle;
+            dominant-baseline: middle; pointer-events: none;
+        }
+
+        /* ----- 座位标签条 ----- */
+        .seat-chip-list {
+            display: flex; flex-wrap: wrap; gap: 4px;
+            padding: 2px 16px 8px; justify-content: center;
+        }
+        .seat-chip {
+            display: flex; align-items: center; gap: 3px;
+            background: #F9F7F4; border: 1px solid #E6E1D9; border-radius: 20px;
+            padding: 3px 8px; font-size: 11px; font-weight: 500; color: #1A1B23;
+        }
+        .seat-chip .seat-num {
+            background: #B8924A; color: #fff; width: 16px; height: 16px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 700;
+        }
+        .seat-chip .seat-name { max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .seat-chip .seat-remove { cursor: pointer; color: #8B2635; font-size: 11px; opacity: 0.5; transition: 0.15s; }
+        .seat-chip .seat-remove:hover { opacity: 1; }
+
+        /* ================================================================
+           烧烤长方形桌面
+           ================================================================ */
+        .bbq-table-outer { fill: #F5F1EB; stroke: #C4B89A; stroke-width: 2.5; }
+        .bbq-table-inner { fill: #EBE4D8; stroke: #D0CCC4; stroke-width: 1; }
+        .bbq-grill-line { stroke: #C4B89A; stroke-width: 1.5; stroke-linecap: round; opacity: 0.5; }
+        .bbq-table-text { font-size: 12px; font-weight: 700; fill: #8A857C; text-anchor: middle; dominant-baseline: middle; }
+
+        /* 烧烤桌每边人数配置栏 */
+        .bbq-config-bar {
+            display: flex; flex-wrap: wrap; gap: 4px 10px;
+            padding: 6px 16px 8px; justify-content: center; align-items: center;
+            border-top: 1px solid #F0EDE8; margin: 0 12px;
+        }
+        .bbq-config-item {
+            display: flex; align-items: center; gap: 1px;
+            font-size: 10px; font-weight: 600; color: #6B6C78;
+        }
+        .bbq-config-item .cfg-label { min-width: 14px; }
+        .bbq-config-item .cfg-count {
+            font-size: 11px; font-weight: 700; color: #1A1B23;
+            min-width: 14px; text-align: center;
+        }
+        .bbq-config-btn {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 1px solid #D0CCC4; background: #fff;
+            font-size: 13px; font-weight: 600; color: #6B6C78;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: 0.15s; line-height: 1; padding: 0;
+        }
+        .bbq-config-btn:hover { background: #EFEAE3; border-color: #B8924A; color: #1A1B23; }
+        .bbq-config-btn:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+
+        /* ----- 烧烤桌面, 上/下侧标签 ----- */
+        .bbq-side-label {
+            font-size: 10px; font-weight: 700; fill: #6B6C78;
+            text-anchor: middle; dominant-baseline: middle;
+            letter-spacing: 0.5px; pointer-events: none;
+        }
+
+        /* ================================================================
+           中餐圆桌
+           ================================================================ */
+        .round-table-outer { fill: #FAF8F5; stroke: #D0CCC4; stroke-width: 2; }
+        .round-table-inner { fill: #EFEAE3; stroke: #D0CCC4; stroke-width: 1; }
+
+        /* ================================================================
+           徒步
+           ================================================================ */
+        .route-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+        .stat-card {
+            background: #fff; border-radius: 14px; padding: 12px 14px;
+            box-shadow: 0 2px 10px rgba(26,27,35,.05); border: 1px solid #E6E1D9;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .stat-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .stat-icon.distance { background: #EBF5EB; color: #2D6A4F; }
+        .stat-icon.time { background: #FFF3E6; color: #B86E1E; }
+        .stat-icon.elevation { background: #EDF2FA; color: #3D5A80; }
+        .stat-icon.difficulty { background: #FDE8EC; color: #8B2635; }
+        .stat-info .stat-value { font-size: 15px; font-weight: 700; color: #1A1B23; }
+        .stat-info .stat-label { font-size: 11px; color: #6B6C78; font-weight: 500; }
+
+        .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: #1A1B23; }
+        .section-title::before { content: ''; width: 4px; height: 20px; background: #B8924A; border-radius: 2px; }
+
+        .timeline { position: relative; padding-left: 36px; margin-bottom: 24px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 16px; top: 8px; bottom: 8px;
+            width: 2px; background: linear-gradient(to bottom, #B8924A, #D0CCC4 60%, #E6E1D9); border-radius: 1px;
+        }
+        .timeline-item { position: relative; margin-bottom: 22px; background: #fff; border-radius: 16px; padding: 20px 18px; box-shadow: 0 2px 10px rgba(26,27,35,.05); border: 1px solid #E6E1D9; transition: 0.2s; }
+        .timeline-item:hover { box-shadow: 0 4px 16px rgba(26,27,35,.08); }
+        .timeline-item::before { content: ''; position: absolute; left: -26px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: #B8924A; border: 3px solid #F5F3EF; box-shadow: 0 0 0 2px #B8924A; }
+        .timeline-item.start::before { background: #2D6A4F; box-shadow: 0 0 0 2px #2D6A4F; width: 16px; height: 16px; left: -28px; top: 18px; border-width: 3px; }
+        .timeline-item.end::before { background: #8B2635; box-shadow: 0 0 0 2px #8B2635; width: 16px; height: 16px; left: -28px; top: 18px; border-width: 3px; }
+        .timeline-item .tl-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .timeline-item .tl-time { font-size: 13px; font-weight: 700; color: #B8924A; background: #FDF9F2; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+        .timeline-item.start .tl-time { background: #EBF5EB; color: #2D6A4F; }
+        .timeline-item.end .tl-time { background: #FDE8EC; color: #8B2635; }
+        .timeline-item .tl-title { font-size: 15px; font-weight: 700; color: #1A1B23; }
+        .timeline-item .tl-sub { font-size: 12px; color: #6B6C78; margin-top: 4px; line-height: 1.6; }
+        .timeline-item .tl-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; font-size: 12px; color: #6B6C78; }
+        .tl-meta span { display: flex; align-items: center; gap: 4px; }
+        .tl-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
+        .tl-badge.rest { background: #FFF3E6; color: #B86E1E; }
+        .tl-badge.photo { background: #EDF2FA; color: #3D5A80; }
+        .tl-badge.water { background: #E0F0FE; color: #1B6FA8; }
+
+        .gear-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .gear-card { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(26,27,35,.05); border: 1px solid #E6E1D9; }
+        .gear-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .gear-card ul { list-style: none; padding: 0; }
+        .gear-card li { font-size: 13px; padding: 4px 0; padding-left: 16px; position: relative; color: #3A3B45; }
+        .gear-card li::before { content: '•'; position: absolute; left: 0; color: #B8924A; font-weight: 700; }
+
+        /* ================================================================
+           路线编辑弹窗
+           ================================================================ */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(26,27,35,.4);
+            z-index: 1000; justify-content: center; align-items: flex-start;
+            padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: #fff; border-radius: 18px; padding: 24px;
+            box-shadow: 0 12px 40px rgba(26,27,35,.15); border: 1px solid #E6E1D9;
+            width: 100%; max-width: 520px;
+        }
+        .modal-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        .modal-box .field { margin-bottom: 12px; }
+        .modal-box label { display: block; font-size: 12px; font-weight: 600; color: #6B6C78; margin-bottom: 4px; }
+        .modal-box input, .modal-box textarea, .modal-box select {
+            width: 100%; border: 1px solid #E6E1D9; border-radius: 10px;
+            padding: 8px 12px; font-size: 13px; background: #FAF8F5;
+            font-family: inherit; resize: vertical;
+        }
+        .modal-box input:focus, .modal-box textarea:focus, .modal-box select:focus {
+            border-color: #B8924A; outline: none; background: #fff;
+        }
+        .modal-box textarea { min-height: 60px; }
+        .modal-box .field-row { display: flex; gap: 10px; }
+        .modal-box .field-row .field { flex: 1; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+        .modal-actions .btn { font-size: 13px; }
+        .modal-box .vehicle-row input { font-size: 12px; padding: 6px 8px; }
+
+        /* ================================================================
+           平板 (≤800px)
+           ================================================================ */
+        @media (max-width: 800px) {
+            body { padding: 12px 10px 30px; }
+            .container { max-width: 100%; }
+            .back-bar h2 { font-size: 17px; }
+            .table-card-grid { grid-template-columns: 1fr; }
+            .route-summary { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .toolbar { padding: 10px 14px; gap: 8px; }
+            .toolbar input[type="text"] { width: 100px; }
+            .table-visual svg { width: 100% !important; margin: 0 !important; }
+            .modal-box { max-width: 94vw; padding: 18px; }
+            .modal-box h3 { font-size: 15px; margin-bottom: 12px; }
+            .timeline { padding-left: 28px; }
+            .timeline-item { padding: 14px 14px; margin-bottom: 14px; }
+            .timeline-item::before { left: -22px; top: 16px; width: 10px; height: 10px; }
+            .timeline-item.start::before,
+            .timeline-item.end::before { width: 14px; height: 14px; left: -24px; top: 14px; }
+            .gear-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ================================================================
+           手机 (≤500px)
+           ================================================================ */
+        @media (max-width: 500px) {
+            body { padding: 8px 6px 24px; }
+
+            /* 标题栏 */
+            .back-bar { margin-bottom: 10px; }
+            .back-bar h2 { font-size: 15px; }
+
+            /* 页签 */
+            .tab-nav { border-radius: 12px; padding: 3px; margin-bottom: 10px; }
+            .tab-btn { font-size: 11px; padding: 8px 6px; border-radius: 10px; }
+            .tab-icon { display: none; }
+
+            /* 工具栏 */
+            .toolbar {
+                padding: 10px 12px; gap: 6px; margin-bottom: 10px; border-radius: 12px;
+                flex-direction: column;
+            }
+            .toolbar .group { flex-wrap: wrap; gap: 4px; width: 100%; }
+            .toolbar .group[style*="margin-left:auto"] { margin-left: 0 !important; }
+            .toolbar label { font-size: 12px; }
+            .toolbar input[type="text"] { width: 100%; max-width: none; font-size: 12px; }
+            .toolbar select { font-size: 12px; max-width: none; }
+            .toolbar .btn { font-size: 12px; padding: 5px 12px; }
+
+            /* 卡片网格 */
+            .bbq-card-grid { gap: 8px; }
+
+            /* 桌面卡片 */
+            .table-card { border-radius: 14px; }
+            .table-card-header { padding: 4px 10px; font-size: 12px; gap: 6px; }
+            .table-card-header .num-badge { width: 20px; height: 20px; font-size: 11px; border-radius: 6px; }
+            .table-card-header .count { font-size: 10px; }
+            .table-card-header .del-btn { font-size: 13px; }
+            .table-card-body { padding: 8px 10px 4px; }
+
+            /* 座位标签 */
+            .seat-chip-list { padding: 2px 10px 6px; gap: 3px; }
+            .seat-chip { padding: 2px 6px; font-size: 10px; gap: 2px; }
+            .seat-chip .seat-num { width: 14px; height: 14px; font-size: 8px; }
+            .seat-chip .seat-remove { font-size: 10px; }
+            .seat-chip .seat-name { max-width: 45px; }
+
+            /* BBQ配置栏 */
+            .bbq-config-bar { gap: 2px 6px; padding: 4px 8px 6px; margin: 0 6px; }
+            .bbq-config-item { font-size: 9px; gap: 0px; }
+            .bbq-config-item .cfg-count { font-size: 10px; min-width: 12px; }
+            .bbq-config-item .cfg-label { min-width: 12px; }
+            .bbq-config-btn { width: 18px; height: 18px; font-size: 11px; }
+
+            /* 徒步概览 */
+            .route-summary { grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 18px; }
+            .stat-card { padding: 8px 10px; gap: 6px; border-radius: 12px; }
+            .stat-icon { width: 28px; height: 28px; font-size: 15px; border-radius: 8px; }
+            .stat-info .stat-value { font-size: 13px; }
+            .stat-info .stat-label { font-size: 10px; }
+
+            /* 时间线 */
+            .timeline { padding-left: 24px; margin-bottom: 16px; }
+            .timeline::before { left: 10px; }
+            .timeline-item { padding: 12px 12px; margin-bottom: 12px; border-radius: 12px; }
+            .timeline-item::before { left: -20px; top: 14px; width: 10px; height: 10px; }
+            .timeline-item.start::before,
+            .timeline-item.end::before { width: 14px; height: 14px; left: -22px; top: 12px; }
+            .timeline-item .tl-time { font-size: 11px; padding: 2px 8px; }
+            .timeline-item .tl-title { font-size: 13px; }
+            .timeline-item .tl-sub { font-size: 11px; }
+            .timeline-item .tl-meta { font-size: 11px; gap: 10px; margin-top: 6px; }
+            .tl-badge { font-size: 10px; padding: 1px 6px; }
+
+            /* 装备 */
+            .gear-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px; }
+            .gear-card { padding: 12px 14px; }
+            .gear-card h4 { font-size: 13px; }
+            .gear-card li { font-size: 12px; }
+
+            /* 弹窗 */
+            .modal-overlay { padding: 16px 8px; }
+            .modal-box { padding: 16px; border-radius: 14px; }
+            .modal-box h3 { font-size: 14px; margin-bottom: 10px; }
+            .modal-box .field { margin-bottom: 8px; }
+            .modal-box label { font-size: 11px; }
+            .modal-box input, .modal-box textarea, .modal-box select { font-size: 12px; padding: 7px 10px; }
+            .modal-box .field-row { flex-direction: column; gap: 0; }
+            .modal-box .vehicle-row { flex-wrap: wrap; gap: 4px !important; }
+            .modal-box .vehicle-row input { flex: auto !important; width: 100%; min-width: 60px; }
+            .modal-actions { margin-top: 14px; gap: 6px; flex-wrap: wrap; }
+            .modal-actions .btn { font-size: 12px; padding: 6px 14px; }
+
+            /* SVG seat labels */
+            .table-visual .seat-label { font-size: 9px; }
+
+            /* 通用按钮 */
+            .btn-sm { padding: 3px 10px; font-size: 11px; }
+            .btn { padding: 7px 14px; font-size: 12px; min-height: 36px; }
+
+            /* 桌面SVG略缩边距 */
+            .table-visual svg { width: 100% !important; margin: 0 !important; }
+
+            /* 圆桌卡片网格 */
+            .table-card-grid { grid-template-columns: 1fr; gap: 12px; }
+
+            /* 烤网文字 */
+            .bbq-table-text { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="back-bar">
+        <h2>🏕️ 锦和出行 · 活动安排</h2>
+    </div>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab-bbq"><span class="tab-icon">🍖</span> 烧烤座位安排</button>
+        <button class="tab-btn" data-tab="tab-hike"><span class="tab-icon">🥾</span> 徒步路线方案</button>
+        <button class="tab-btn" data-tab="tab-lunch"><span class="tab-icon">🍽️</span> 中餐座位安排</button>
+    </div>
+
+    <!-- ===== 页签一：烧烤（长方形 SVG，人数不固定，上下错开） ===== -->
+    <div class="tab-panel active" id="tab-bbq">
+        <div class="toolbar">
+            <div class="group">
+                <label>➕ 添加人员</label>
+                <input type="text" id="bbqPersonInput" placeholder="输入姓名" />
+                <select id="bbqTargetSeat"></select>
+                <select id="bbqTargetTable"></select>
+                <button class="btn btn-gold" id="bbqAddPersonBtn">添加</button>
+            </div>
+            <div class="group" style="margin-left:auto;">
+                <button class="btn btn-outline btn-sm" id="bbqAddTableBtn">➕ 添加烧烤桌</button>
+                <button class="btn btn-outline btn-sm" id="bbqResetBtn">重置默认</button>
+                <button class="btn btn-primary btn-sm" id="bbqSaveBtn">💾 保存</button>
+            </div>
+        </div>
+        <div class="bbq-card-grid" id="bbqGrid"></div>
+    </div>
+
+    <!-- ===== 页签二：徒步路线方案（可编辑） ===== -->
+    <div class="tab-panel" id="tab-hike">
+        <div class="toolbar">
+            <div class="group">
+                <label>🥾 路线方案</label>
+                <select id="hikeRouteSelect"></select>
+                <button class="btn btn-outline btn-sm" id="hikeEditRouteBtn">✏️ 编辑方案</button>
+                <button class="btn btn-outline btn-sm" id="hikeAddRouteBtn">➕ 新方案</button>
+            </div>
+            <div class="group" style="margin-left:auto;">
+                <button class="btn btn-outline btn-sm" id="hikeResetBtn">重置默认</button>
+                <button class="btn btn-primary btn-sm" id="hikeSaveBtn">💾 保存</button>
+            </div>
+        </div>
+        <div class="route-summary" id="hikeSummary"></div>
+        <div class="section-title">🗺️ 详细路线
+            <button class="btn btn-outline btn-sm" id="hikeAddWaypointBtn" style="margin-left:auto;">➕ 添加途经点</button>
+        </div>
+        <div class="timeline" id="hikeTimeline"></div>
+        <div class="section-title">🎒 建议装备</div>
+        <div class="gear-grid">
+            <div class="gear-card"><h4>👕 穿着类</h4><ul><li>速干T恤（避免纯棉）</li><li>轻薄防风外套</li><li>徒步裤/运动裤</li><li>登山鞋或防滑运动鞋</li><li>遮阳帽</li><li>备用袜子一双</li></ul></div>
+            <div class="gear-card"><h4>🎒 装备类</h4><ul><li>15-25L 双肩背包</li><li>登山杖（建议双杖）</li><li>充电宝 + 数据线</li><li>垃圾袋（无痕山野）</li><li>防水袋（装电子设备）</li><li>坐垫/防潮垫</li></ul></div>
+            <div class="gear-card"><h4>🍎 饮食类</h4><ul><li>饮用水 ≥ 1.5L/人</li><li>电解质饮料</li><li>午餐干粮（三明治/饭团）</li><li>高能量零食（坚果/巧克力）</li><li>水果（香蕉/苹果）</li></ul></div>
+            <div class="gear-card"><h4>🛡️ 防护类</h4><ul><li>防晒霜 SPF50+</li><li>驱蚊液</li><li>创可贴 + 消毒湿巾</li><li>个人常用药品</li><li>雨衣/雨伞（备用）</li><li>口哨（应急）</li></ul></div>
+        </div>
+    </div>
+
+    <!-- ===== 页签三：中餐（圆桌） ===== -->
+    <div class="tab-panel" id="tab-lunch">
+        <div class="toolbar">
+            <div class="group">
+                <label>🍽️ 添加人员</label>
+                <input type="text" id="lunchPersonInput" placeholder="输入姓名" />
+                <select id="lunchTargetSeat"></select>
+                <select id="lunchTargetTable"></select>
+                <button class="btn btn-gold" id="lunchAddPersonBtn">添加</button>
+            </div>
+            <div class="group" style="margin-left:auto;">
+                <button class="btn btn-outline btn-sm" id="lunchAddTableBtn">➕ 添加圆桌</button>
+                <button class="btn btn-outline btn-sm" id="lunchResetBtn">重置默认</button>
+                <button class="btn btn-primary btn-sm" id="lunchSaveBtn">💾 保存</button>
+            </div>
+        </div>
+        <div class="table-card-grid" id="lunchGrid"></div>
+    </div>
+</div>
+
+<!-- 路线编辑弹窗 -->
+<div class="modal-overlay" id="hikeModal">
+    <div class="modal-box" id="hikeModalContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ================================================================
+    //  全局
+    // ================================================================
+    let toastTimer = null;
+    function showToast(msg, duration) {
+        const el = document.getElementById('toast');
+        el.textContent = msg; el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), duration || 2000);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    // ---- 数据持久化（localStorage） ----
+    const STORE_KEY = 'jinhe_trip_activity_v2';
+    function loadStore() {
+        try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
+    }
+    function saveStore(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+    // ================================================================
+    //  工具：为烧烤桌动态计算座位坐标（上/下错开布局）
+    // ================================================================
+    // SVG viewBox: 0 0 420 300，桌子矩形横向加长，仅两端坐人
+    const BBQ_SEAT_R = 14;
+    const LUNCH_SEAT_R = 19;
+
+    function getBbqPositions(cfg) {
+        // cfg = { top, bottom, left, right } — 四边均可坐人
+        const pos = [];
+        const { top, bottom, left, right } = cfg;
+
+        // ---- 上排：y=18，x 在 [55, 365] 均匀分布 ----
+        const topY = 18, xStart = 55, xEnd = 365;
+        for (let i = 0; i < top; i++) {
+            const x = top > 1 ? Math.round(xStart + (xEnd - xStart) * i / (top - 1)) : 210;
+            pos.push({ x, y: topY, side: 'top', idx: i, label: '上' + (i + 1) });
+        }
+
+        // ---- 右端：x=398，y 在 [42, 146] 均匀分布 ----
+        const yStart = 42, yEnd = 146;
+        for (let i = 0; i < right; i++) {
+            const y = right > 1 ? Math.round(yStart + (yEnd - yStart) * i / (right - 1)) : 94;
+            pos.push({ x: 406, y, side: 'right', idx: i, label: '右' + (i + 1) });
+        }
+
+        // ---- 下排：y=177，与上排同范围均匀分布 ----
+        const bottomY = 177;
+        for (let i = 0; i < bottom; i++) {
+            const x = bottom > 1 ? Math.round(xStart + (xEnd - xStart) * i / (bottom - 1)) : 210;
+            pos.push({ x, y: bottomY, side: 'bottom', idx: i, label: '下' + (bottom - i) });
+        }
+
+        // ---- 左端：x=22，y 同右端范围均匀分布 ----
+        for (let i = 0; i < left; i++) {
+            const y = left > 1 ? Math.round(yStart + (yEnd - yStart) * i / (left - 1)) : 94;
+            pos.push({ x: 14, y, side: 'left', idx: i, label: '左' + (i + 1) });
+        }
+
+        return pos;
+    }
+
+    // ================================================================
+    //  页签一：烧烤座位安排
+    // ================================================================
+    const DEFAULT_BBQ_CONFIG = { top: 3, bottom: 3, left: 2, right: 2 };
+
+    const BBQ_DEFAULT = [
+        { id: 1, config: { top: 3, bottom: 3, left: 2, right: 2 },
+          seats: ['张伟','李明','王芳','赵磊','刘洋','孙悦','周杰','郑宇','钱程','朱晓'] },
+        { id: 2, config: { top: 3, bottom: 3, left: 2, right: 2 },
+          seats: ['林涛','高媛','何雨','马超','罗琳','徐辉','韩雪','唐亮','吴敏','陈静'] }
+    ];
+
+    let bbqData = JSON.parse(JSON.stringify(BBQ_DEFAULT));
+    // 从 localStorage 加载烧烤数据
+    (function() {
+        const store = loadStore();
+        if (store.bbq && Array.isArray(store.bbq) && store.bbq.length) {
+            bbqData = store.bbq.map(t => {
+                const cfg = (t.config && typeof t.config === 'object')
+                    ? { top: t.config.top ?? 3, bottom: t.config.bottom ?? 3, left: t.config.left ?? 2, right: t.config.right ?? 2 }
+                    : { ...DEFAULT_BBQ_CONFIG };
+                const total = cfg.top + cfg.bottom + cfg.left + cfg.right;
+                let seats = Array.isArray(t.seats) ? t.seats : [];
+                while (seats.length < total) seats.push('');
+                seats = seats.slice(0, total);
+                return { id: t.id ?? 1, config: cfg, seats };
+            });
+        }
+    })();
+    let bbqNextId = bbqData.length ? Math.max(...bbqData.map(t => t.id)) + 1 : 1;
+
+    function saveBbqData() {
+        const store = loadStore();
+        store.bbq = bbqData;
+        saveStore(store);
+    }
+
+    function totalSeats(cfg) { return cfg.top + cfg.bottom + cfg.left + cfg.right; }
+
+    function renderBbq() {
+        // 更新工具栏下拉
+        const tableSelect = document.getElementById('bbqTargetTable');
+        tableSelect.innerHTML = bbqData.map(t => `<option value="${t.id}">烧烤桌 ${t.id}</option>`).join('');
+
+        // 座位下拉使用第一个桌子的配置
+        const firstCfg = bbqData.length ? bbqData[0].config : DEFAULT_BBQ_CONFIG;
+        const seatSelect = document.getElementById('bbqTargetSeat');
+        seatSelect.innerHTML = getBbqPositions(firstCfg).map((p, i) =>
+            `<option value="${i}">${p.label}</option>`
+        ).join('');
+
+        const grid = document.getElementById('bbqGrid');
+        grid.innerHTML = bbqData.map(table => {
+            const cfg = table.config;
+            const positions = getBbqPositions(cfg);
+            const total = totalSeats(cfg);
+            const occupiedCount = table.seats.filter(s => s).length;
+
+            // ---- SVG 座位圆圈 ----
+            const seatCircles = positions.map((pos, idx) => {
+                const name = table.seats[idx] || '';
+                const occupied = !!name;
+                const displayName = name
+                    ? (name.length > 3 ? name.substring(0, 3) + '..' : name)
+                    : pos.label;
+                return `
+                    <circle class="seat ${occupied ? 'occupied' : ''}"
+                        cx="${pos.x}" cy="${pos.y}" r="${BBQ_SEAT_R}"
+                        data-table="${table.id}" data-seat="${idx}"
+                        title="${name || ('空位 ' + pos.label)}" />
+                    <text x="${pos.x}" y="${pos.y}" class="seat-label"
+                        fill="${occupied ? '#fff' : '#6B6C78'}"
+                        style="font-size:${(displayName.length > 2) ? 8 : 10}px;">${displayName}</text>
+                `;
+            }).join('');
+
+            // ---- 方向标签（四边） ----
+            const sideLabels = [];
+            if (cfg.top > 0) sideLabels.push(`<text x="210" y="6" class="bbq-side-label" fill="#3D5A80">▲ 上排 ${cfg.top}座</text>`);
+            if (cfg.bottom > 0) sideLabels.push(`<text x="210" y="190" class="bbq-side-label" fill="#8B2635">▼ 下排 ${cfg.bottom}座</text>`);
+            if (cfg.left > 0) sideLabels.push(`<text x="7" y="96" class="bbq-side-label" fill="#6B6C78" transform="rotate(-90,7,96)">左 ${cfg.left}座</text>`);
+            if (cfg.right > 0) sideLabels.push(`<text x="413" y="96" class="bbq-side-label" fill="#6B6C78" transform="rotate(90,413,96)">右 ${cfg.right}座</text>`);
+
+            // ---- 烤网横线 ----
+            const grillLines = [];
+            const grillTop = 48, grillBottom = 144, lineCount = 4;
+            for (let i = 0; i < lineCount; i++) {
+                const ly = Math.round(grillTop + (grillBottom - grillTop) * i / (lineCount - 1));
+                grillLines.push(`<line x1="50" y1="${ly}" x2="370" y2="${ly}" class="bbq-grill-line" />`);
+            }
+
+            // ---- SVG 整体（两端留出座位空间） ----
+            const svgContent = `
+                <svg viewBox="0 0 420 195" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="30" y="32" width="360" height="126" rx="12" class="bbq-table-outer" />
+                    <rect x="40" y="42" width="340" height="106" rx="6" class="bbq-table-inner" />
+                    ${grillLines.join('')}
+                    <text x="210" y="88" class="bbq-table-text" style="font-size:14px;">🔥</text>
+                    <text x="210" y="102" class="bbq-table-text">烧烤桌 ${table.id}</text>
+                    ${sideLabels.join('')}
+                    ${seatCircles}
+                </svg>
+            `;
+
+            // ---- 底部座位标签 ----
+            const seatChips = positions.map((pos, idx) => {
+                const name = table.seats[idx] || '';
+                return `
+                    <div class="seat-chip">
+                        <span class="seat-num">${pos.label}</span>
+                        <span class="seat-name">${name || '(空)'}</span>
+                        ${name ? `<span class="seat-remove" data-table="${table.id}" data-seat="${idx}">✕</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // ---- 每边人数配置按钮（上下左右四边） ----
+            const configBar = `
+                <div class="bbq-config-bar">
+                    ${renderConfigItem(table.id, 'top', cfg.top, 0, 99, '上')}
+                    ${renderConfigItem(table.id, 'bottom', cfg.bottom, 0, 99, '下')}
+                    ${renderConfigItem(table.id, 'left', cfg.left, 0, 99, '左')}
+                    ${renderConfigItem(table.id, 'right', cfg.right, 0, 99, '右')}
+                </div>
+            `;
+
+            return `
+                <div class="table-card" data-table="${table.id}">
+                    <div class="table-card-header">
+                        <span class="num-badge">${table.id}</span>
+                        烧烤桌 ${table.id}
+                        <span class="count">${occupiedCount}/${total} 人</span>
+                        <button class="del-btn" data-table="${table.id}" title="删除此桌">✕</button>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-visual" style="width:80%;margin:0 auto;">${svgContent}</div>
+                    </div>
+                    ${configBar}
+                    <div class="seat-chip-list">${seatChips}</div>
+                </div>
+            `;
+        }).join('');
+
+        attachBbqEvents();
+    }
+
+    function renderConfigItem(tableId, side, count, min, max, label) {
+        return `
+            <div class="bbq-config-item">
+                <span class="cfg-label">${label}</span>
+                <button class="bbq-config-btn bbq-cfg-minus"
+                    data-table="${tableId}" data-side="${side}"
+                    ${count <= min ? 'disabled' : ''}>−</button>
+                <span class="cfg-count">${count}</span>
+                <button class="bbq-config-btn bbq-cfg-plus"
+                    data-table="${tableId}" data-side="${side}"
+                    ${count >= max ? 'disabled' : ''}>+</button>
+            </div>
+        `;
+    }
+
+    function attachBbqEvents() {
+        // 点击空座位 → 选中下拉框
+        document.querySelectorAll('#tab-bbq .seat:not(.occupied)').forEach(c => {
+            c.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                const seatIdx = parseInt(this.dataset.seat);
+                document.getElementById('bbqTargetTable').value = tableId;
+                // 同步更新座位下拉到当前桌子
+                const table = bbqData.find(t => t.id === tableId);
+                if (table) {
+                    const positions = getBbqPositions(table.config);
+                    const seatSelect = document.getElementById('bbqTargetSeat');
+                    seatSelect.innerHTML = positions.map((p, i) =>
+                        `<option value="${i}">${p.label}</option>`
+                    ).join('');
+                }
+                document.getElementById('bbqTargetSeat').value = seatIdx;
+                document.getElementById('bbqPersonInput').focus();
+            };
+        });
+
+        // 点击已占座位 → 移除
+        document.querySelectorAll('#tab-bbq .seat.occupied').forEach(c => {
+            c.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                const seatIdx = parseInt(this.dataset.seat);
+                const table = bbqData.find(t => t.id === tableId);
+                if (!table) return;
+                const positions = getBbqPositions(table.config);
+                const removed = table.seats[seatIdx];
+                if (confirm(`移除 "${removed}" 从烧烤桌 ${tableId} ${positions[seatIdx].label}？`)) {
+                    table.seats[seatIdx] = '';
+                    saveBbqData();
+                    renderBbq();
+                    showToast(`已移除 "${removed}"`);
+                }
+            };
+        });
+
+        // 底部标签移除
+        document.querySelectorAll('#tab-bbq .seat-remove').forEach(btn => {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                const tableId = parseInt(this.dataset.table);
+                const seatIdx = parseInt(this.dataset.seat);
+                const table = bbqData.find(t => t.id === tableId);
+                if (!table) return;
+                const removed = table.seats[seatIdx];
+                table.seats[seatIdx] = '';
+                saveBbqData();
+                renderBbq();
+                showToast(`已移除 "${removed}"`);
+            };
+        });
+
+        // 删除桌
+        document.querySelectorAll('#tab-bbq .del-btn').forEach(btn => {
+            btn.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                if (bbqData.length <= 1) { showToast('至少保留一桌'); return; }
+                if (!confirm(`删除烧烤桌 ${tableId}？`)) return;
+                bbqData = bbqData.filter(t => t.id !== tableId);
+                saveBbqData();
+                renderBbq();
+                showToast(`已删除烧烤桌 ${tableId}`);
+            };
+        });
+
+        // ---- 每边人数 +/- 按钮 ----
+        document.querySelectorAll('#tab-bbq .bbq-cfg-plus').forEach(btn => {
+            btn.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                const side = this.dataset.side;
+                changeSeatCount(tableId, side, 1);
+            };
+        });
+        document.querySelectorAll('#tab-bbq .bbq-cfg-minus').forEach(btn => {
+            btn.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                const side = this.dataset.side;
+                changeSeatCount(tableId, side, -1);
+            };
+        });
+    }
+
+    function changeSeatCount(tableId, side, delta) {
+        const table = bbqData.find(t => t.id === tableId);
+        if (!table) return;
+        const cfg = table.config;
+        const oldTotal = totalSeats(cfg);
+        const newVal = cfg[side] + delta;
+        const limits = { top: [0, 99], bottom: [0, 99], left: [0, 99], right: [0, 99] };
+        if (newVal < limits[side][0] || newVal > limits[side][1]) return;
+
+        // 如果要减少且有占座 → 确认
+        if (delta < 0) {
+            // 计算将被移除的座位索引
+            const positions = getBbqPositions(cfg);
+            const newCfg = { ...cfg, [side]: newVal };
+            const newPositions = getBbqPositions(newCfg);
+            // 找出哪些座位会消失
+            const removed = [];
+            for (let i = oldTotal - 1; i >= 0; i--) {
+                const oldKey = positions[i].side + '-' + positions[i].idx;
+                const stillExists = newPositions.some(np => (np.side + '-' + np.idx) === oldKey);
+                if (!stillExists && table.seats[i]) {
+                    removed.push(table.seats[i]);
+                }
+            }
+            if (removed.length > 0) {
+                if (!confirm(`减少"${side}"侧座位将移除: ${removed.join('、')}，确定？`)) return;
+            }
+        }
+
+        // 重建座位数组
+        cfg[side] = newVal;
+        const newTotal = totalSeats(cfg);
+        const oldSeats = [...table.seats];
+        // 按顺时针为新配置生成座位映射
+        const newPositions = getBbqPositions(cfg);
+        const oldPositions = getBbqPositions({ ...cfg, [side]: newVal - delta }); // 旧配置
+        const newSeats = new Array(newTotal).fill('');
+
+        // 将旧座位按 side+idx 映射到新座位
+        for (let oi = 0; oi < oldSeats.length; oi++) {
+            if (!oldSeats[oi]) continue;
+            const oldKey = oldPositions[oi].side + '-' + oldPositions[oi].idx;
+            const ni = newPositions.findIndex(np => (np.side + '-' + np.idx) === oldKey);
+            if (ni >= 0) newSeats[ni] = oldSeats[oi];
+        }
+        table.seats = newSeats;
+        saveBbqData();
+        renderBbq();
+        const sideNames = { top: '上排', bottom: '下排', left: '左侧', right: '右侧' };
+        showToast(`烧烤桌 ${tableId} ${sideNames[side]} → ${newVal} 座`);
+    }
+
+    // 工具栏添加
+    document.getElementById('bbqAddPersonBtn').addEventListener('click', () => {
+        const input = document.getElementById('bbqPersonInput');
+        const name = input.value.trim();
+        if (!name) { showToast('请输入姓名'); return; }
+        const tableId = parseInt(document.getElementById('bbqTargetTable').value);
+        const seatIdx = parseInt(document.getElementById('bbqTargetSeat').value);
+        const table = bbqData.find(t => t.id === tableId);
+        if (!table) return;
+        if (table.seats.includes(name)) { showToast(`"${name}" 已在烧烤桌 ${tableId}`); return; }
+        const positions = getBbqPositions(table.config);
+        if (table.seats[seatIdx]) {
+            if (!confirm(`座位 ${positions[seatIdx].label} 已被 "${table.seats[seatIdx]}" 占用，替换？`)) return;
+        }
+        table.seats[seatIdx] = name;
+        input.value = '';
+        saveBbqData();
+        renderBbq();
+        showToast(`已安排 "${name}" 到烧烤桌 ${tableId} ${positions[seatIdx].label}`);
+    });
+    document.getElementById('bbqPersonInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('bbqAddPersonBtn').click();
+    });
+
+    // 工具栏：选中桌子时更新座位下拉
+    document.getElementById('bbqTargetTable').addEventListener('change', function() {
+        const tableId = parseInt(this.value);
+        const table = bbqData.find(t => t.id === tableId);
+        if (!table) return;
+        const positions = getBbqPositions(table.config);
+        const seatSelect = document.getElementById('bbqTargetSeat');
+        seatSelect.innerHTML = positions.map((p, i) =>
+            `<option value="${i}">${p.label}</option>`
+        ).join('');
+    });
+
+    document.getElementById('bbqAddTableBtn').addEventListener('click', () => {
+        const cfg = { ...DEFAULT_BBQ_CONFIG };
+        const total = totalSeats(cfg);
+        bbqData.push({ id: bbqNextId++, config: cfg, seats: new Array(total).fill('') });
+        saveBbqData();
+        renderBbq();
+        showToast(`已添加烧烤桌 ${bbqNextId - 1}`);
+    });
+    document.getElementById('bbqResetBtn').addEventListener('click', () => {
+        if (confirm('重置为默认烧烤座位？')) {
+            bbqData = JSON.parse(JSON.stringify(BBQ_DEFAULT));
+            bbqNextId = bbqData.length ? Math.max(...bbqData.map(t => t.id)) + 1 : 1;
+            saveBbqData();
+            renderBbq();
+            showToast('已重置默认');
+        }
+    });
+    document.getElementById('bbqSaveBtn').addEventListener('click', () => {
+        saveBbqData(); showToast('✅ 烧烤座位已保存');
+    });
+
+    // ================================================================
+    //  页签二：徒步路线（可编辑多方案）
+    // ================================================================
+    const HIKE_DEFAULT = [{
+        id: 1,
+        name: '神瀑沟经典路线',
+        summary: { distance: '8.6 km', time: '4.5 小时', difficulty: '中等' },
+        vehicles: [
+            { name: '默认车行', adults: '', children: '' }
+        ],
+        waypoints: [
+            { type:'start', time:'08:00', title:'集合出发', desc:'在神瀑沟景区门口集合，清点人数、分发物资。领队讲解路线要点与安全须知，做热身拉伸。', alt:'860 m', dist:'0 km', badges:[] },
+            { type:'waypoint', time:'08:30', title:'神瀑沟入口 · 迎宾瀑', desc:'进入神瀑沟步道，首先经过迎宾瀑布。沿途溪流潺潺，空气清新，路面以栈道和石板为主。', alt:'920 m', dist:'1.2 km', badges:[{text:'补水点',cls:'water'}] },
+            { type:'waypoint', time:'09:30', title:'半山观景台 · 飞瀑', desc:'爬升至半山腰，可观赏第二级飞瀑，视野豁然开朗。此处可远眺雪山与峡谷全景，绝佳拍照点。', alt:'1060 m', dist:'3.0 km', badges:[{text:'拍照点',cls:'photo'},{text:'休息点',cls:'rest'}] },
+            { type:'waypoint', time:'10:15', title:'松林栈道', desc:'穿行于原始松林之间，空气清冽带有松香。此段路较为平缓，可适当加快步伐。注意栈道岔路口。', alt:'1100 m', dist:'4.5 km', badges:[] },
+            { type:'waypoint', time:'11:00', title:'神瀑顶 · 主瀑观景台', desc:'抵达神瀑沟最高点！三级主瀑飞流直下，气势磅礴。在此休整、享用午餐干粮。注意水雾湿滑。', alt:'1280 m', dist:'5.8 km', badges:[{text:'休息点',cls:'rest'},{text:'拍照点',cls:'photo'}] },
+            { type:'waypoint', time:'12:00', title:'环线下山 · 彩虹潭', desc:'沿环线步道下山，途经彩虹潭。晴天可见瀑布彩虹。下山路段较陡，建议使用登山杖慢行。', alt:'950 m', dist:'7.0 km', badges:[{text:'拍照点',cls:'photo'}] },
+            { type:'end', time:'12:30', title:'返回景区入口 · 活动结束', desc:'安全返回神瀑沟景区入口。简单拉伸放松，统计人数后前往餐厅。恭喜完成本次徒步！🏅', alt:'860 m', dist:'8.6 km', badges:[] }
+        ]
+    }];
+
+    let hikeData = JSON.parse(JSON.stringify(HIKE_DEFAULT));
+    // 从 localStorage 加载徒步数据
+    (function() {
+        const store = loadStore();
+        if (store.hike && Array.isArray(store.hike) && store.hike.length) {
+            let arr = store.hike;
+            arr.forEach(r => {
+                if (!r.vehicles) { r.vehicles = [{ name: '默认车行', adults: r.adults||r.people||'', children: r.children||'' }]; delete r.adults; delete r.children; delete r.people; }
+                if (r.summary && r.summary.elevation !== undefined) delete r.summary.elevation;
+            });
+            hikeData = arr;
+        }
+    })();
+    let hikeNextId = hikeData.length ? Math.max(...hikeData.map(r => r.id)) + 1 : 1;
+    let hikeCurrentId = hikeData.length ? hikeData[0].id : 1;
+
+    function saveHikeData() {
+        const store = loadStore();
+        store.hike = hikeData;
+        saveStore(store);
+    }
+    function getCurrentRoute() { return hikeData.find(r => r.id === hikeCurrentId) || hikeData[0]; }
+
+    function renderHike() {
+        const route = getCurrentRoute();
+        if (!route) return;
+        // 路线下拉
+        const sel = document.getElementById('hikeRouteSelect');
+        sel.innerHTML = hikeData.map(r => `<option value="${r.id}" ${r.id===hikeCurrentId?'selected':''}>${r.name}</option>`).join('');
+
+        // 概览卡片
+        const s = route.summary;
+        const vehicles = route.vehicles || [];
+        const totalAdults = vehicles.reduce((sum, v) => sum + (parseInt(v.adults) || 0), 0);
+        const totalChildren = vehicles.reduce((sum, v) => sum + (parseInt(v.children) || 0), 0);
+        const vehicleCards = vehicles.map((v, i) => `
+            <div class="stat-card stat-card-sm" onclick="editHikeSummary()" style="cursor:pointer;" title="点击编辑">
+                <div class="stat-icon" style="background:#F0EDE8;color:#6B6C78;">🚗</div>
+                <div class="stat-info"><div class="stat-value" style="font-size:13px;">${escHtml(v.name)}</div><div class="stat-label">🧑${v.adults || 0} · 👶${v.children || 0}</div></div>
+            </div>
+        `).join('');
+        document.getElementById('hikeSummary').innerHTML = `
+            <div class="stat-card" onclick="editHikeSummary()" style="cursor:pointer;" title="点击编辑">
+                <div class="stat-icon distance">📏</div><div class="stat-info"><div class="stat-value">${s.distance}</div><div class="stat-label">徒步总距离</div></div></div>
+            <div class="stat-card" onclick="editHikeSummary()" style="cursor:pointer;" title="点击编辑">
+                <div class="stat-icon time">⏱️</div><div class="stat-info"><div class="stat-value">${s.time}</div><div class="stat-label">预计耗时（含休息）</div></div></div>
+            <div class="stat-card" onclick="editHikeSummary()" style="cursor:pointer;" title="点击编辑">
+                <div class="stat-icon difficulty">⚡</div><div class="stat-info"><div class="stat-value">${s.difficulty}</div><div class="stat-label">难度等级</div></div></div>
+            ${vehicleCards}
+            <div class="stat-card" style="background:#FAF8F5;border-color:#B8924A;">
+                <div class="stat-icon" style="background:#EDF2FA;color:#3D5A80;">🧑</div><div class="stat-info"><div class="stat-value">${totalAdults}</div><div class="stat-label">成人</div></div></div>
+            <div class="stat-card" style="background:#FAF8F5;border-color:#B8924A;">
+                <div class="stat-icon" style="background:#FFF5EB;color:#C67A2E;">👶</div><div class="stat-info"><div class="stat-value">${totalChildren}</div><div class="stat-label">儿童</div></div></div>
+        `;
+
+        // 时间线
+        document.getElementById('hikeTimeline').innerHTML = route.waypoints.map((wp, idx) => {
+            const badgesHtml = (wp.badges||[]).map(b => `<span class="tl-badge ${b.cls}">${b.text}</span>`).join('');
+            return `<div class="timeline-item ${wp.type}">
+                <div class="tl-header">
+                    <span class="tl-time">${wp.time}</span>
+                    <span class="tl-title">${wp.title}</span>${badgesHtml}
+                    <button class="btn btn-outline btn-sm" style="margin-left:auto;padding:2px 8px;font-size:11px;" data-hike-edit="${idx}">✏️</button>
+                    <button class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:11px;color:#8B2635;" data-hike-del="${idx}">✕</button>
+                </div>
+                <div class="tl-sub">${wp.desc}</div>
+                <div class="tl-meta"><span>📏 ${wp.dist}</span><span>⛰️ 海拔 ${wp.alt}</span></div>
+            </div>`;
+        }).join('');
+
+        attachHikeEvents();
+    }
+
+    function attachHikeEvents() {
+        document.querySelectorAll('[data-hike-edit]').forEach(btn => {
+            btn.onclick = function() { openWaypointModal(parseInt(this.dataset.hikeEdit)); };
+        });
+        document.querySelectorAll('[data-hike-del]').forEach(btn => {
+            btn.onclick = function() {
+                const idx = parseInt(this.dataset.hikeDel);
+                const route = getCurrentRoute();
+                if (!route || route.waypoints.length <= 2) { showToast('至少保留起点和终点'); return; }
+                if (!confirm(`删除"${route.waypoints[idx].title}"？`)) return;
+                route.waypoints.splice(idx, 1);
+                saveHikeData(); renderHike();
+                showToast('已删除途经点');
+            };
+        });
+    }
+
+    // ---- 路线下拉切换 ----
+    document.getElementById('hikeRouteSelect').addEventListener('change', function() {
+        hikeCurrentId = parseInt(this.value);
+        renderHike();
+    });
+
+    // ---- 编辑路线方案（名称+概要） ----
+    document.getElementById('hikeEditRouteBtn').addEventListener('click', () => editHikeSummary());
+
+    let _emVehNext = 0; // 弹窗内车行行号计数器
+
+    function editHikeSummary() {
+        const route = getCurrentRoute();
+        if (!route) return;
+        const s = route.summary;
+        const vehicles = JSON.parse(JSON.stringify(route.vehicles || []));
+        _emVehNext = vehicles.length;
+
+        function makeVehRow(v, i) {
+            return `<div class="vehicle-row" data-em-vehidx="${i}" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                <input id="emVName${i}" value="${escHtml(v.name)}" placeholder="车行名称" style="flex:2;">
+                <input id="emVAdults${i}" value="${escHtml(v.adults||'')}" placeholder="成人" style="flex:1;">
+                <input id="emVChildren${i}" value="${escHtml(v.children||'')}" placeholder="儿童" style="flex:1;">
+                <button class="btn btn-outline btn-sm btn-em-delv" style="color:#8B2635;padding:4px 8px;${vehicles.length<=1?'display:none;':''}">✕</button>
+            </div>`;
+        }
+
+        const modal = document.getElementById('hikeModalContent');
+        modal.innerHTML = `
+            <h3>✏️ 编辑路线方案</h3>
+            <div class="field"><label>路线名称</label><input id="emName" value="${escHtml(route.name)}"></div>
+            <div class="field-row">
+                <div class="field"><label>总距离</label><input id="emDist" value="${escHtml(s.distance)}"></div>
+                <div class="field"><label>耗时</label><input id="emTime" value="${escHtml(s.time)}"></div>
+            </div>
+            <div class="field"><label>难度</label><input id="emDiff" value="${escHtml(s.difficulty)}"></div>
+            <div class="field">
+                <label>🚗 车行 <button class="btn btn-outline btn-sm" id="emAddVehicle" style="margin-left:8px;padding:2px 10px;">➕ 添加车行</button></label>
+                <div id="emVehicleList">${vehicles.map((v,i) => makeVehRow(v,i)).join('')}</div>
+            </div>
+            <div class="modal-actions">
+                ${hikeData.length>1 ? `<button class="btn btn-outline btn-sm" style="color:#8B2635;" id="emDelRoute">删除此方案</button>` : ''}
+                <button class="btn btn-outline btn-sm" id="emCancel">取消</button>
+                <button class="btn btn-primary btn-sm" id="emSave">保存</button>
+            </div>
+        `;
+        document.getElementById('hikeModal').classList.add('show');
+        document.getElementById('emCancel').onclick = () => document.getElementById('hikeModal').classList.remove('show');
+
+        // 添加车行（DOM追加，不刷新弹窗）
+        document.getElementById('emAddVehicle').onclick = () => {
+            const idx = _emVehNext++;
+            const row = document.createElement('div');
+            row.className = 'vehicle-row';
+            row.setAttribute('data-em-vehidx', String(idx));
+            row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px;';
+            row.innerHTML = `
+                <input id="emVName${idx}" placeholder="车行名称" style="flex:2;" value="新车行">
+                <input id="emVAdults${idx}" placeholder="成人" style="flex:1;">
+                <input id="emVChildren${idx}" placeholder="儿童" style="flex:1;">
+                <button class="btn btn-outline btn-sm btn-em-delv" style="color:#8B2635;padding:4px 8px;">✕</button>
+            `;
+            document.getElementById('emVehicleList').appendChild(row);
+            bindDelBtns();
+        };
+
+        // 删除车行绑定
+        function bindDelBtns() {
+            modal.querySelectorAll('.btn-em-delv').forEach(btn => {
+                btn.onclick = function() {
+                    const list = document.getElementById('emVehicleList');
+                    if (list.querySelectorAll('.vehicle-row').length <= 1) { showToast('至少保留一个车行'); return; }
+                    this.closest('.vehicle-row').remove();
+                    // 更新删除按钮显示
+                    if (list.querySelectorAll('.vehicle-row').length <= 1) {
+                        const b = list.querySelector('.btn-em-delv');
+                        if (b) b.style.display = 'none';
+                    }
+                };
+            });
+        }
+        bindDelBtns();
+
+        document.getElementById('emSave').onclick = () => {
+            route.name = document.getElementById('emName').value.trim() || route.name;
+            // 从 DOM 收集车行数据
+            const newVehicles = [];
+            document.querySelectorAll('#emVehicleList .vehicle-row').forEach(row => {
+                const idx = row.getAttribute('data-em-vehidx');
+                const nameEl = document.getElementById(`emVName${idx}`);
+                const adultsEl = document.getElementById(`emVAdults${idx}`);
+                const childrenEl = document.getElementById(`emVChildren${idx}`);
+                newVehicles.push({
+                    name: (nameEl ? nameEl.value.trim() : '') || '车行',
+                    adults: adultsEl ? adultsEl.value.trim() : '',
+                    children: childrenEl ? childrenEl.value.trim() : ''
+                });
+            });
+            route.vehicles = newVehicles.length ? newVehicles : [{ name: '默认车行', adults: '', children: '' }];
+            route.summary = {
+                distance: document.getElementById('emDist').value.trim() || s.distance,
+                time: document.getElementById('emTime').value.trim() || s.time,
+                difficulty: document.getElementById('emDiff').value.trim() || s.difficulty
+            };
+            saveHikeData(); renderHike();
+            document.getElementById('hikeModal').classList.remove('show');
+            showToast('路线方案已更新');
+        };
+        const delBtn = document.getElementById('emDelRoute');
+        if (delBtn) delBtn.onclick = () => {
+            if (!confirm(`删除方案"${route.name}"？此操作不可恢复。`)) return;
+            hikeData = hikeData.filter(r => r.id !== route.id);
+            if (hikeData.length === 0) { hikeData = JSON.parse(JSON.stringify(HIKE_DEFAULT)); hikeNextId = 2; }
+            hikeCurrentId = hikeData[0].id;
+            saveHikeData(); renderHike();
+            document.getElementById('hikeModal').classList.remove('show');
+            showToast('方案已删除');
+        };
+    }
+
+    // ---- 新增路线方案 ----
+    document.getElementById('hikeAddRouteBtn').addEventListener('click', () => {
+        const newRoute = {
+            id: hikeNextId++,
+            name: '新路线方案',
+            summary: { distance: '0 km', time: '0 小时', difficulty: '简单' },
+            vehicles: [{ name: '新车行', adults: '', children: '' }],
+            waypoints: [
+                { type:'start', time:'08:00', title:'起点', desc:'', alt:'', dist:'0 km', badges:[] },
+                { type:'end', time:'12:00', title:'终点', desc:'', alt:'', dist:'0 km', badges:[] }
+            ]
+        };
+        hikeData.push(newRoute);
+        hikeCurrentId = newRoute.id;
+        saveHikeData(); renderHike();
+        showToast('已添加新路线方案');
+    });
+
+    // ---- 添加途经点 ----
+    document.getElementById('hikeAddWaypointBtn').addEventListener('click', () => {
+        const route = getCurrentRoute();
+        if (!route) return;
+        const insertAt = route.waypoints.length - 1; // 终点前
+        route.waypoints.splice(insertAt, 0, {
+            type: 'waypoint', time: '', title: '新途经点', desc: '', alt: '', dist: '', badges: []
+        });
+        saveHikeData(); renderHike();
+        openWaypointModal(insertAt);
+    });
+
+    // ---- 途经点编辑弹窗 ----
+    function openWaypointModal(idx) {
+        const route = getCurrentRoute();
+        if (!route) return;
+        const wp = route.waypoints[idx];
+        const modal = document.getElementById('hikeModalContent');
+        const typeOpts = ['start','waypoint','end'].map(t => `<option value="${t}" ${wp.type===t?'selected':''}>${t==='start'?'起点':t==='end'?'终点':'途经点'}</option>`).join('');
+        const badgeStr = (wp.badges||[]).map(b => `${b.text}:${b.cls}`).join(',');
+        modal.innerHTML = `
+            <h3>✏️ 编辑途经点 #${idx+1}</h3>
+            <div class="field-row">
+                <div class="field"><label>类型</label><select id="wmType">${typeOpts}</select></div>
+                <div class="field"><label>时间</label><input id="wmTime" value="${escHtml(wp.time)}" placeholder="如 09:00"></div>
+            </div>
+            <div class="field"><label>标题</label><input id="wmTitle" value="${escHtml(wp.title)}"></div>
+            <div class="field"><label>描述</label><textarea id="wmDesc">${escHtml(wp.desc)}</textarea></div>
+            <div class="field-row">
+                <div class="field"><label>距离</label><input id="wmDist" value="${escHtml(wp.dist)}" placeholder="如 3.0 km"></div>
+                <div class="field"><label>海拔</label><input id="wmAlt" value="${escHtml(wp.alt)}" placeholder="如 920 m"></div>
+            </div>
+            <div class="field"><label>标签（格式：文字:类型,文字:类型）</label><input id="wmBadges" value="${escHtml(badgeStr)}" placeholder="如 补水点:water,拍照点:photo"></div>
+            <div class="modal-actions">
+                <button class="btn btn-outline btn-sm" id="wmCancel">取消</button>
+                <button class="btn btn-primary btn-sm" id="wmSave">保存</button>
+            </div>
+        `;
+        document.getElementById('hikeModal').classList.add('show');
+        document.getElementById('wmCancel').onclick = () => document.getElementById('hikeModal').classList.remove('show');
+        document.getElementById('wmSave').onclick = () => {
+            wp.type = document.getElementById('wmType').value;
+            wp.time = document.getElementById('wmTime').value.trim();
+            wp.title = document.getElementById('wmTitle').value.trim() || '未命名';
+            wp.desc = document.getElementById('wmDesc').value.trim();
+            wp.dist = document.getElementById('wmDist').value.trim();
+            wp.alt = document.getElementById('wmAlt').value.trim();
+            const bs = document.getElementById('wmBadges').value.trim();
+            wp.badges = bs ? bs.split(',').map(s => { const [text,cls] = s.split(':'); return {text:text.trim(),cls:(cls||'rest').trim()}; }) : [];
+            saveHikeData(); renderHike();
+            document.getElementById('hikeModal').classList.remove('show');
+            showToast('途经点已更新');
+        };
+    }
+
+    // ---- 辅助 ----
+    function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    // ---- 点击弹窗外关闭 ----
+    document.getElementById('hikeModal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+
+    // ---- 重置 ----
+    document.getElementById('hikeResetBtn').addEventListener('click', () => {
+        if (confirm('重置为默认路线方案？当前编辑将丢失。')) {
+            hikeData = JSON.parse(JSON.stringify(HIKE_DEFAULT));
+            hikeNextId = hikeData.length ? Math.max(...hikeData.map(r=>r.id))+1 : 1;
+            hikeCurrentId = hikeData[0].id;
+            saveHikeData(); renderHike();
+            showToast('已重置默认');
+        }
+    });
+    document.getElementById('hikeSaveBtn').addEventListener('click', () => {
+        saveHikeData(); showToast('✅ 路线方案已保存');
+    });
+
+    // ================================================================
+    //  页签三：中餐圆桌
+    // ================================================================
+    const SEATS_PER_TABLE = 10;
+    const LUNCH_DEFAULT = [
+        { id: 1, seats: ['张伟','李明','王芳','赵磊','陈静','刘洋','孙悦','周杰','吴敏','郑宇'] },
+        { id: 2, seats: ['钱程','朱晓','林涛','高媛','何雨','马超','罗琳','徐辉','韩雪','唐亮'] }
+    ];
+
+    let lunchData = JSON.parse(JSON.stringify(LUNCH_DEFAULT));
+    // 从 localStorage 加载中餐数据
+    (function() {
+        const store = loadStore();
+        if (store.lunch && Array.isArray(store.lunch) && store.lunch.length) {
+            lunchData = store.lunch.map(t => ({ id: t.id ?? 1, seats: Array.isArray(t.seats) ? t.seats.slice(0, SEATS_PER_TABLE) : [] }));
+        }
+    })();
+    let lunchNextId = lunchData.length ? Math.max(...lunchData.map(t => t.id)) + 1 : 1;
+
+    function saveLunchData() {
+        const store = loadStore();
+        store.lunch = lunchData;
+        saveStore(store);
+    }
+
+    function getRoundSeatCoords(count) {
+        const positions = [];
+        const cx = 150, cy = 150, seatDistance = 92;
+        const startAngle = -Math.PI / 2;
+        for (let i = 0; i < count; i++) {
+            const angle = startAngle + (2 * Math.PI * i) / count;
+            positions.push({ x: cx + seatDistance * Math.cos(angle), y: cy + seatDistance * Math.sin(angle), label: '座位' + (i + 1) });
+        }
+        return positions;
+    }
+
+    function renderLunch() {
+        const tableSelect = document.getElementById('lunchTargetTable');
+        tableSelect.innerHTML = lunchData.map(t => `<option value="${t.id}">圆桌 ${t.id}</option>`).join('');
+        const coords = getRoundSeatCoords(SEATS_PER_TABLE);
+        document.getElementById('lunchTargetSeat').innerHTML = coords.map((s, i) => `<option value="${i}">${s.label}</option>`).join('');
+
+        document.getElementById('lunchGrid').innerHTML = lunchData.map(table => {
+            const positions = getRoundSeatCoords(SEATS_PER_TABLE);
+            const occupiedCount = table.seats.filter(s => s).length;
+
+            const seatCircles = positions.map((pos, idx) => {
+                const name = table.seats[idx] || '';
+                const occupied = !!name;
+                const displayName = name ? (name.length > 3 ? name.substring(0, 3) + '..' : name) : (idx + 1);
+                return `
+                    <circle class="seat ${occupied ? 'occupied' : ''}" cx="${pos.x}" cy="${pos.y}" r="${LUNCH_SEAT_R}"
+                        data-table="${table.id}" data-seat="${idx}" title="${name || ('空位 ' + (idx+1))}" />
+                    <text x="${pos.x}" y="${pos.y}" class="seat-label"
+                        fill="${occupied ? '#fff' : '#6B6C78'}"
+                        style="font-size:${(displayName.length > 2 && !occupied) ? 9 : 11}px;">${displayName}</text>
+                `;
+            }).join('');
+
+            const seatChips = positions.map((pos, idx) => {
+                const name = table.seats[idx] || '';
+                return `<div class="seat-chip"><span class="seat-num">${idx+1}</span><span class="seat-name">${name||'(空)'}</span>${name?`<span class="seat-remove" data-table="${table.id}" data-seat="${idx}">✕</span>`:''}</div>`;
+            }).join('');
+
+            return `
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <span class="num-badge">${table.id}</span> 圆桌 ${table.id}
+                        <span class="count">${occupiedCount}/${SEATS_PER_TABLE} 人</span>
+                        <button class="del-btn" data-table="${table.id}" title="删除此桌">✕</button>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-visual" style="max-width:300px;">
+                            <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="150" cy="150" r="62" class="round-table-outer" />
+                                <circle cx="150" cy="150" r="34" class="round-table-inner" />
+                                <text x="150" y="146" style="font-size:12px;font-weight:700;fill:#6B6C78;text-anchor:middle;dominant-baseline:middle;">圆桌</text>
+                                <text x="150" y="162" style="font-size:12px;font-weight:700;fill:#6B6C78;text-anchor:middle;dominant-baseline:middle;">${table.id}</text>
+                                ${seatCircles}
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="seat-chip-list">${seatChips}</div>
+                </div>
+            `;
+        }).join('');
+
+        attachLunchEvents();
+    }
+
+    function attachLunchEvents() {
+        document.querySelectorAll('#tab-lunch .seat:not(.occupied)').forEach(c => {
+            c.onclick = function() {
+                document.getElementById('lunchTargetTable').value = this.dataset.table;
+                document.getElementById('lunchTargetSeat').value = this.dataset.seat;
+                document.getElementById('lunchPersonInput').focus();
+            };
+        });
+        document.querySelectorAll('#tab-lunch .seat.occupied').forEach(c => {
+            c.onclick = function() {
+                const table = lunchData.find(t => t.id === parseInt(this.dataset.table));
+                if (!table) return;
+                const removed = table.seats[parseInt(this.dataset.seat)];
+                if (confirm(`移除 "${removed}" 从圆桌 ${this.dataset.table} 座位 ${parseInt(this.dataset.seat)+1}？`)) {
+                    table.seats[parseInt(this.dataset.seat)] = '';
+                    saveLunchData(); renderLunch();
+                    showToast(`已移除 "${removed}"`);
+                }
+            };
+        });
+        document.querySelectorAll('#tab-lunch .seat-remove').forEach(btn => {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                const table = lunchData.find(t => t.id === parseInt(this.dataset.table));
+                if (!table) return;
+                const removed = table.seats[parseInt(this.dataset.seat)];
+                table.seats[parseInt(this.dataset.seat)] = '';
+                saveLunchData(); renderLunch();
+                showToast(`已移除 "${removed}"`);
+            };
+        });
+        document.querySelectorAll('#tab-lunch .del-btn').forEach(btn => {
+            btn.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                if (lunchData.length <= 1) { showToast('至少保留一桌'); return; }
+                if (!confirm(`删除圆桌 ${tableId}？`)) return;
+                lunchData = lunchData.filter(t => t.id !== tableId);
+                saveLunchData(); renderLunch();
+                showToast(`已删除圆桌 ${tableId}`);
+            };
+        });
+    }
+
+    document.getElementById('lunchAddPersonBtn').addEventListener('click', () => {
+        const input = document.getElementById('lunchPersonInput');
+        const name = input.value.trim();
+        if (!name) { showToast('请输入姓名'); return; }
+        const tableId = parseInt(document.getElementById('lunchTargetTable').value);
+        const seatIdx = parseInt(document.getElementById('lunchTargetSeat').value);
+        const table = lunchData.find(t => t.id === tableId);
+        if (!table) return;
+        if (table.seats.includes(name)) { showToast(`"${name}" 已在圆桌 ${tableId}`); return; }
+        if (table.seats[seatIdx]) {
+            if (!confirm(`座位 ${seatIdx+1} 已被 "${table.seats[seatIdx]}" 占用，替换？`)) return;
+        }
+        table.seats[seatIdx] = name;
+        input.value = '';
+        saveLunchData(); renderLunch();
+        showToast(`已安排 "${name}" 到圆桌 ${tableId} 座位 ${seatIdx+1}`);
+    });
+    document.getElementById('lunchPersonInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('lunchAddPersonBtn').click(); });
+    document.getElementById('lunchAddTableBtn').addEventListener('click', () => {
+        lunchData.push({ id: lunchNextId++, seats: new Array(SEATS_PER_TABLE).fill('') });
+        saveLunchData(); renderLunch();
+        showToast(`已添加圆桌 ${lunchNextId-1}`);
+    });
+    document.getElementById('lunchResetBtn').addEventListener('click', () => {
+        if (confirm('重置为默认中餐座位？')) {
+            lunchData = JSON.parse(JSON.stringify(LUNCH_DEFAULT));
+            lunchNextId = lunchData.length ? Math.max(...lunchData.map(t => t.id)) + 1 : 1;
+            saveLunchData(); renderLunch();
+            showToast('已重置默认');
+        }
+    });
+    document.getElementById('lunchSaveBtn').addEventListener('click', () => {
+        saveLunchData(); showToast('✅ 中餐座位已保存');
+    });
+
+    // ================================================================
+    //  初始化
+    // ================================================================
+    renderBbq();
+    renderHike();
+    renderLunch();
+    showToast('📋 已加载缓存数据');
+</script>
+</body>
+</html>
