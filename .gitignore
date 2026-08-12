@@ -1,0 +1,7 @@
+node_modules/
+data/store.json
+data/store.lock
+data/backups/
+*.tmp.*
+.env
+.DS_Store

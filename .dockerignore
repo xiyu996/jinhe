@@ -1,0 +1,12 @@
+node_modules/
+data/store.json
+data/store.lock
+data/backups/
+*.tmp.*
+.git/
+.gitignore
+README.md
+start.bat
+docker-compose.yml
+Dockerfile
+.dockerignore

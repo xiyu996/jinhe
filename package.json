@@ -1,0 +1,19 @@
+{
+  "name": "jinhe-trip",
+  "version": "1.0.0",
+  "description": "锦和出行 · 活动安排协作平台 - 支持多人实时编辑烧烤座位、徒步路线、中餐座位",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["collaboration", "realtime", "event-planning"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

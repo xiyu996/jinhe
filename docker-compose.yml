@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  jinhe-trip:
+    build: .
+    container_name: jinhe-trip
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data   # 持久化数据
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
