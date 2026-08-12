@@ -340,6 +340,7 @@
             .table-card-header .num-badge { width: 20px; height: 20px; font-size: 11px; border-radius: 6px; }
             .table-card-header .count { font-size: 10px; }
             .table-card-header .del-btn { font-size: 13px; }
+            .table-card-header .bbq-manager { font-size: 10px !important; }
             .table-card-body { padding: 8px 10px 4px; }
 
             /* 座位标签 */
@@ -576,9 +577,9 @@
 
     const BBQ_DEFAULT = [
         { id: 1, config: { top: 3, bottom: 3, left: 2, right: 2 },
-          seats: ['张伟','李明','王芳','赵磊','刘洋','孙悦','周杰','郑宇','钱程','朱晓'] },
+          seats: ['张伟','李明','王芳','赵磊','刘洋','孙悦','周杰','郑宇','钱程','朱晓'], manager: '' },
         { id: 2, config: { top: 3, bottom: 3, left: 2, right: 2 },
-          seats: ['林涛','高媛','何雨','马超','罗琳','徐辉','韩雪','唐亮','吴敏','陈静'] }
+          seats: ['林涛','高媛','何雨','马超','罗琳','徐辉','韩雪','唐亮','吴敏','陈静'], manager: '' }
     ];
 
     let bbqData = JSON.parse(JSON.stringify(BBQ_DEFAULT));
@@ -594,7 +595,7 @@
                 let seats = Array.isArray(t.seats) ? t.seats : [];
                 while (seats.length < total) seats.push('');
                 seats = seats.slice(0, total);
-                return { id: t.id ?? 1, config: cfg, seats };
+                return { id: t.id ?? 1, config: cfg, seats, manager: t.manager || '' };
             });
         }
     })();
@@ -701,6 +702,10 @@
                         <span class="num-badge">${table.id}</span>
                         烧烤桌 ${table.id}
                         <span class="count">${occupiedCount}/${total} 人</span>
+                        <span class="bbq-manager" data-table="${table.id}" title="点击编辑负责人" style="margin-left:8px;font-size:11px;font-weight:500;color:#B8924A;cursor:pointer;display:flex;align-items:center;gap:3px;">
+                            👤 ${table.manager || '未指定'}
+                            <span style="font-size:10px;opacity:0.5;">✏️</span>
+                        </span>
                         <button class="del-btn" data-table="${table.id}" title="删除此桌">✕</button>
                     </div>
                     <div class="table-card-body">
@@ -782,6 +787,21 @@
                 saveBbqData();
                 renderBbq();
                 showToast(`已移除 "${removed}"`);
+            };
+        });
+
+        // 点击负责人 → 编辑
+        document.querySelectorAll('#tab-bbq .bbq-manager').forEach(el => {
+            el.onclick = function() {
+                const tableId = parseInt(this.dataset.table);
+                const table = bbqData.find(t => t.id === tableId);
+                if (!table) return;
+                const newManager = prompt(`编辑烧烤桌 ${tableId} 负责人：`, table.manager || '');
+                if (newManager === null) return; // 取消
+                table.manager = newManager.trim();
+                saveBbqData();
+                renderBbq();
+                showToast(table.manager ? `负责人已更新为 "${table.manager}"` : '已清空负责人');
             };
         });
 
@@ -906,7 +926,7 @@
     document.getElementById('bbqAddTableBtn').addEventListener('click', () => {
         const cfg = { ...DEFAULT_BBQ_CONFIG };
         const total = totalSeats(cfg);
-        bbqData.push({ id: bbqNextId++, config: cfg, seats: new Array(total).fill('') });
+        bbqData.push({ id: bbqNextId++, config: cfg, seats: new Array(total).fill(''), manager: '' });
         saveBbqData();
         renderBbq();
         showToast(`已添加烧烤桌 ${bbqNextId - 1}`);
